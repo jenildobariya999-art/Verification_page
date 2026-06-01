@@ -1,0 +1,44 @@
+body{
+  background:#07142c;
+  color:white;
+  font-family:Arial,sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+}
+
+.card{
+  width:340px;
+  text-align:center;
+  background:#0f2346;
+  padding:25px;
+  border-radius:18px;
+}
+
+.badge{
+  display:inline-block;
+  padding:8px 14px;
+  border-radius:20px;
+  background:#19396d;
+  margin-bottom:15px;
+}
+
+.progress{
+  width:100%;
+  height:14px;
+  background:#1d3158;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+#bar{
+  width:0%;
+  height:100%;
+  background:#3b82f6;
+}
+
+#percent{
+  margin-top:10px;
+}
