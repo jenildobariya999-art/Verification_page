@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verification</title>
+
+<style>
+body{
+    background:#0f172a;
+    color:white;
+    font-family:Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.box{
+    text-align:center;
+    background:#1e293b;
+    padding:30px;
+    border-radius:15px;
+    width:350px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>🔐 Verify Yourself</h2>
+    <p>Complete verification to continue.</p>
+
+    <button onclick="verify()">Verify Now</button>
+
+    <p id="status"></p>
+</div>
+
+<script>
+function verify(){
+
+    document.getElementById("status").innerHTML =
+    "⏳ Verifying...";
+
+    setTimeout(async()=>{
+
+        const params =
+            new URLSearchParams(window.location.search);
+
+        const webhook =
+            params.get("webhook");
+
+        await fetch("/api/verify",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                webhook:webhook
+            })
+        });
+
+        document.getElementById("status").innerHTML =
+        "✅ Verification Successful";
+
+    },2500);
+}
+</script>
+
+</body>
+</html>
