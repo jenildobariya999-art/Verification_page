@@ -61,8 +61,27 @@ body{
 </div>
 
 <script>
+function getFingerprint() {
 
-async function verify(){
+    const fp = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        languages: navigator.languages,
+        platform: navigator.platform,
+        timezone: Intl.DateTimeFormat()
+            .resolvedOptions()
+            .timeZone,
+        screen: `${screen.width}x${screen.height}`,
+        colorDepth: screen.colorDepth,
+        cpu: navigator.hardwareConcurrency || 0,
+        memory: navigator.deviceMemory || 0,
+        touch: navigator.maxTouchPoints || 0
+    };
+
+    return btoa(JSON.stringify(fp));
+}
+
+async function verify() {
 
     const params = new URLSearchParams(
         window.location.search
@@ -72,61 +91,21 @@ async function verify(){
         params.get("webhook")
     );
 
-    const hash = params.get("hash");
+    const fingerprint = getFingerprint();
 
-    const fingerprint = {
-        hash: hash,
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform,
-        timezone:
-            Intl.DateTimeFormat()
-            .resolvedOptions()
-            .timeZone,
-        screen:
-            screen.width + "x" + screen.height
-    };
+    await fetch(webhook, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            status: "pass",
+            message: "Verified Successfully",
+            fingerprint: fingerprint
+        })
+    });
 
-    document.getElementById("status").innerHTML =
-        "⏳ Verifying...";
-
-    try{
-
-        const req = await fetch(
-            webhook,
-            {
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    status:"pass",
-                    message:"Verified Successfully",
-                    device:fingerprint
-                })
-            }
-        );
-
-        if(req.ok){
-
-            document.getElementById("status").innerHTML =
-                "✅ Verification Successful";
-
-        }else{
-
-            document.getElementById("status").innerHTML =
-                "❌ Verification Failed";
-
-        }
-
-    }catch(err){
-
-        document.getElementById("status").innerHTML =
-            "❌ Verification Failed";
-
-    }
 }
-
 </script>
 
 </body>
