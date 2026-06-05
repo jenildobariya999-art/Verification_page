@@ -1,112 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Device Verification</title>
-
-<style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#0f172a;
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.card{
-    width:90%;
-    max-width:400px;
-    background:#1e293b;
-    border-radius:15px;
-    padding:25px;
-    text-align:center;
-}
-
-.btn{
-    width:100%;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    background:#22c55e;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-}
-
-.status{
-    margin-top:15px;
-}
-</style>
 </head>
-<body>
+<body><h2>Device Verification</h2><button id="verifyBtn">Verify Now</button>
 
-<div class="card">
-
-    <h2>🔐 Device Verification</h2>
-
-    <p>
-        Complete verification to continue using the bot.
-    </p>
-
-    <button class="btn" onclick="verify()">
-        Verify Now
-    </button>
-
-    <div class="status" id="status"></div>
-
-</div>
-
-<script>
+<p id="status"></p><script>
 function getFingerprint() {
-
-    const fp = {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        languages: navigator.languages,
-        platform: navigator.platform,
-        timezone: Intl.DateTimeFormat()
-            .resolvedOptions()
-            .timeZone,
-        screen: `${screen.width}x${screen.height}`,
-        colorDepth: screen.colorDepth,
-        cpu: navigator.hardwareConcurrency || 0,
-        memory: navigator.deviceMemory || 0,
-        touch: navigator.maxTouchPoints || 0
-    };
-
-    return btoa(JSON.stringify(fp));
+    return [
+        navigator.userAgent,
+        navigator.language,
+        screen.width,
+        screen.height,
+        navigator.platform
+    ].join("|");
 }
 
-async function verify() {
+document.getElementById("verifyBtn").onclick = async () => {
 
-    const params = new URLSearchParams(
-        window.location.search
-    );
+    const params = new URLSearchParams(location.search);
 
-    const webhook = decodeURIComponent(
-        params.get("webhook")
-    );
+    const webhook = params.get("webhook");
 
-    const fingerprint = getFingerprint();
+    const fp = getFingerprint();
 
-    await fetch(webhook, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
+    const res = await fetch("/api/verify",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
         },
-        body: JSON.stringify({
-            status: "pass",
-            message: "Verified Successfully",
-            fingerprint: fingerprint
+        body:JSON.stringify({
+            fingerprint:fp
         })
     });
 
-}
-</script>
+    const data = await res.json();
 
-</body>
+    document.getElementById("status").innerText =
+        data.message;
+
+    if(webhook){
+
+        await fetch(
+            decodeURIComponent(webhook),
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    status:data.status,
+                    message:data.message
+                })
+            }
+        );
+    }
+};
+</script></body>
 </html>
