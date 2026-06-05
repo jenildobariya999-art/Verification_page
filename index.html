@@ -1,82 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verification</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Device Verification</title>
 
 <style>
 body{
+    margin:0;
+    font-family:Arial,sans-serif;
     background:#0f172a;
     color:white;
-    font-family:Arial,sans-serif;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
 }
 
-.box{
-    text-align:center;
+.card{
+    width:90%;
+    max-width:400px;
     background:#1e293b;
-    padding:30px;
     border-radius:15px;
-    width:350px;
+    padding:25px;
+    text-align:center;
 }
 
-button{
+.btn{
     width:100%;
-    padding:12px;
+    padding:15px;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
     background:#22c55e;
     color:white;
-    font-size:18px;
+    font-size:16px;
     cursor:pointer;
+}
+
+.status{
+    margin-top:15px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="box">
-    <h2>🔐 Verify Yourself</h2>
-    <p>Complete verification to continue.</p>
+<div class="card">
 
-    <button onclick="verify()">Verify Now</button>
+    <h2>🔐 Device Verification</h2>
 
-    <p id="status"></p>
+    <p>
+        Complete verification to continue using the bot.
+    </p>
+
+    <button class="btn" onclick="verify()">
+        Verify Now
+    </button>
+
+    <div class="status" id="status"></div>
+
 </div>
 
 <script>
-function verify(){
+
+async function verify(){
+
+    const params = new URLSearchParams(
+        window.location.search
+    );
+
+    const webhook = decodeURIComponent(
+        params.get("webhook")
+    );
+
+    const hash = params.get("hash");
+
+    const fingerprint = {
+        hash: hash,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        timezone:
+            Intl.DateTimeFormat()
+            .resolvedOptions()
+            .timeZone,
+        screen:
+            screen.width + "x" + screen.height
+    };
 
     document.getElementById("status").innerHTML =
-    "⏳ Verifying...";
+        "⏳ Verifying...";
 
-    setTimeout(async()=>{
+    try{
 
-        const params =
-            new URLSearchParams(window.location.search);
+        const req = await fetch(
+            webhook,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    status:"pass",
+                    message:"Verified Successfully",
+                    device:fingerprint
+                })
+            }
+        );
 
-        const webhook =
-            params.get("webhook");
+        if(req.ok){
 
-        await fetch("/api/verify",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                webhook:webhook
-            })
-        });
+            document.getElementById("status").innerHTML =
+                "✅ Verification Successful";
+
+        }else{
+
+            document.getElementById("status").innerHTML =
+                "❌ Verification Failed";
+
+        }
+
+    }catch(err){
 
         document.getElementById("status").innerHTML =
-        "✅ Verification Successful";
+            "❌ Verification Failed";
 
-    },2500);
+    }
 }
+
 </script>
 
 </body>
