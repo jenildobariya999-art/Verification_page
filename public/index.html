@@ -113,10 +113,10 @@ await fetch(webhook,{
     "Content-Type":"application/json"
   },
   body: JSON.stringify({
-       status: "pass",
-       message: "Verified Successfully",
-       fingerprint: fp
-})
+    status: "pass",
+    message: "Verified Successfully",
+    fingerprint: fp
+  })
 });
 
 document.getElementById(
