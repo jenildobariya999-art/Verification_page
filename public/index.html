@@ -107,20 +107,17 @@ const fp = fingerprint();
 
 try{
 
-await fetch(
-webhook,
-{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-status:"pass",
-message:"Verified Successfully",
-fingerprint:fp
-})
-}
-);
+await fetch(webhook,{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    status:"pass",
+    message:"Verified Successfully",
+    fingerprint:fingerprint
+  })
+});
 
 document.getElementById(
 "loader"
