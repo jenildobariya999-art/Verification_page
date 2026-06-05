@@ -112,10 +112,11 @@ await fetch(webhook,{
   headers:{
     "Content-Type":"application/json"
   },
-  body:JSON.stringify({
-    status:"pass",
-    message:"Verified Successfully",
-    fingerprint:fingerprint
+  body: JSON.stringify({
+status: "pass",
+message: "Verified Successfully",
+fingerprint: fp
+})
   })
 });
 
