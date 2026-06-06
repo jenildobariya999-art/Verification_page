@@ -301,10 +301,32 @@ function setFail(msg){
   btn.disabled=false; btn.className='btn btn-red'; btn.textContent='CONTINUE TO BOT'; btn.onclick=toBot;
 }
 
-function toBot(){ window.location.href='https://t.me/'; }
+function toBot(){
+
+  const params =
+    new URLSearchParams(location.search);
+
+  const bot =
+    params.get("botusername");
+
+  if(bot){
+    window.location.href =
+      "https://t.me/" + bot;
+  }
+
+}
 
 function fp(){
-  return btoa([navigator.userAgent,navigator.language,screen.width,screen.height,navigator.platform].join("|"));
+  return btoa([
+    navigator.userAgent,
+    navigator.language,
+    screen.width,
+    screen.height,
+    navigator.platform,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency || 0,
+    navigator.deviceMemory || 0
+  ].join("|"));
 }
 
 async function verify(){
@@ -314,10 +336,23 @@ async function verify(){
   let data;
   try{
     // read botId from URL: ?botId=CashLoot  (set this in your TBC /start link)
-    const params = new URLSearchParams(location.search);
-    const botId  = params.get("botId") || "default";
-    const r=await fetch("/api/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fp:f, botId})});
-    data=await r.json();
+    const params =
+  new URLSearchParams(location.search);
+
+const botusername =
+  params.get("botusername") || "";
+
+const r = await fetch("/api/verify",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    fp:f,
+    botusername:botusername
+  })
+});
+data = await r.json();
   }catch(e){
     animProg(100,400,()=>setFail('Network error — please try again'));
     return;
@@ -328,9 +363,28 @@ async function verify(){
   });
   const params2 = new URLSearchParams(location.search);
   const wh=params2.get("webhook");
-  const botId2=params2.get("botId")||"default";
-  if(wh) await fetch(decodeURIComponent(wh),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:data.status,message:data.message,fingerprint:f,botId:botId2})});
-}
+  const botusername =
+  params2.get("botusername") || "";
+
+if(wh){
+
+  await fetch(
+    decodeURIComponent(wh),
+    {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        status:data.status,
+        message:data.message,
+        fingerprint:f,
+        botusername:botusername
+      })
+    }
+  );
+
+    }
 
 window.addEventListener('load',()=>setTimeout(verify,500));
 </script>
