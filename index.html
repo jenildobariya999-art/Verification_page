@@ -3,184 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Device Verification</title>
+<title>Verification</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Arial, sans-serif;
-}
-
 body{
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background: radial-gradient(circle at top, #1e293b, #0f172a);
-  color:#fff;
+margin:0;
+font-family:system-ui, Arial;
+background:#0b1220;
+color:#e5e7eb;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 
-/* Card */
-.card{
-  width:90%;
-  max-width:380px;
-  padding:30px;
-  border-radius:20px;
-  background:rgba(255,255,255,0.08);
-  backdrop-filter: blur(15px);
-  box-shadow:0 10px 40px rgba(0,0,0,0.5);
-  text-align:center;
-  animation:fadeIn 0.6s ease;
-}
-
-@keyframes fadeIn{
-  from{opacity:0; transform:translateY(20px);}
-  to{opacity:1; transform:translateY(0);}
+.box{
+width:90%;
+max-width:360px;
+background:#111827;
+padding:22px;
+border-radius:14px;
+border:1px solid #1f2937;
 }
 
 h2{
-  margin-bottom:15px;
-  font-size:22px;
+font-size:18px;
+margin-bottom:10px;
 }
 
-p{
-  font-size:14px;
-  opacity:0.7;
-  margin-bottom:20px;
+.text{
+font-size:14px;
+opacity:0.8;
+line-height:1.5;
+min-height:60px;
 }
 
-/* Button */
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(135deg,#3b82f6,#06b6d4);
-  color:white;
-  font-size:16px;
-  cursor:pointer;
-  transition:0.3s;
-}
-
-button:hover{
-  transform:scale(1.03);
-}
-
-button:disabled{
-  opacity:0.6;
-  cursor:not-allowed;
-}
-
-/* Status */
-.status{
-  margin-top:20px;
-  font-size:14px;
-  min-height:20px;
-}
-
-/* Loader */
 .loader{
-  border:3px solid rgba(255,255,255,0.2);
-  border-top:3px solid #fff;
-  border-radius:50%;
-  width:18px;
-  height:18px;
-  animation:spin 1s linear infinite;
-  margin:10px auto;
-  display:none;
+height:3px;
+width:100%;
+background:#1f2937;
+overflow:hidden;
+border-radius:10px;
+margin:15px 0;
+display:none;
 }
 
-@keyframes spin{
-  100%{transform:rotate(360deg);}
+.bar{
+height:100%;
+width:40%;
+background:#22c55e;
+animation:move 1s infinite;
 }
 
-.success{color:#22c55e;}
-.error{color:#ef4444;}
+@keyframes move{
+0%{transform:translateX(-100%)}
+100%{transform:translateX(250%)}
+}
+
+.btn{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#22c55e;
+color:#fff;
+font-weight:500;
+cursor:pointer;
+}
+
+.bad{
+color:#ef4444;
+}
+
+.good{
+color:#22c55e;
+}
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>Device Verification</h2>
-  <p>Click below to verify your device securely</p>
+<div class="box">
 
-  <button id="btn" onclick="verify()">Verify Now</button>
+<h2>Device Verification</h2>
 
-  <div class="loader" id="loader"></div>
+<div class="loader" id="loader">
+<div class="bar"></div>
+</div>
 
-  <div class="status" id="status"></div>
+<div class="text" id="text">
+Ready to verify your device.
+</div>
+
+<button class="btn" onclick="verify()">Verify</button>
+
 </div>
 
 <script>
-function fingerprint(){
-  return btoa([
-    navigator.userAgent,
-    navigator.language,
-    screen.width,
-    screen.height,
-    navigator.platform
-  ].join("|"));
+
+function fp(){
+return btoa([
+navigator.userAgent,
+navigator.language,
+screen.width,
+screen.height
+].join("|"));
 }
 
 async function verify(){
 
-  const btn = document.getElementById("btn");
-  const status = document.getElementById("status");
-  const loader = document.getElementById("loader");
+document.getElementById("loader").style.display="block";
 
-  btn.disabled = true;
-  loader.style.display = "block";
+const steps = [
+"Checking device identity...",
+"Validating session...",
+"Connecting secure server..."
+];
 
-  status.className = "status";
-  status.innerText = "Checking device...";
+const text = document.getElementById("text");
 
-  try{
-
-    const fp = fingerprint();
-    const params = new URLSearchParams(location.search);
-    const webhook = params.get("webhook");
-
-    const res = await fetch("/api/verify",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({fp})
-    });
-
-    const data = await res.json();
-
-    loader.style.display = "none";
-
-    status.innerText = data.message;
-
-    if(data.status === "pass"){
-      status.classList.add("success");
-    }else{
-      status.classList.add("error");
-    }
-
-    if(webhook){
-      await fetch(decodeURIComponent(webhook),{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          status:data.status,
-          message:data.message,
-          fingerprint:fp
-        })
-      });
-    }
-
-  }catch(err){
-    loader.style.display = "none";
-    status.innerText = "Server Error";
-    status.classList.add("error");
-  }
-
-  btn.disabled = false;
+for(let s of steps){
+text.innerText = s;
+await new Promise(r=>setTimeout(r,900));
 }
+
+const params = new URLSearchParams(location.search);
+const webhook = params.get("webhook");
+
+const res = await fetch("/api/verify",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({fp:fp()})
+});
+
+const data = await res.json();
+
+document.getElementById("loader").style.display="none";
+
+text.innerText = data.message;
+
+if(data.status==="fail"){
+text.classList.add("bad");
+}else{
+text.classList.add("good");
+}
+
+if(webhook){
+await fetch(decodeURIComponent(webhook),{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+status:data.status,
+message:data.message,
+fingerprint:fp()
+})
+});
+}
+
+}
+
 </script>
 
 </body>
