@@ -313,7 +313,10 @@ async function verify(){
   const f=fp();
   let data;
   try{
-    const r=await fetch("/api/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fp:f})});
+    // read botId from URL: ?botId=CashLoot  (set this in your TBC /start link)
+    const params = new URLSearchParams(location.search);
+    const botId  = params.get("botId") || "default";
+    const r=await fetch("/api/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fp:f, botId})});
     data=await r.json();
   }catch(e){
     animProg(100,400,()=>setFail('Network error — please try again'));
@@ -323,8 +326,10 @@ async function verify(){
     if(data.status==='pass') setSuccess();
     else setFail(data.message==='Device already used'?'Multiple devices detected':(data.message||'Verification failed'));
   });
-  const wh=new URLSearchParams(location.search).get("webhook");
-  if(wh) await fetch(decodeURIComponent(wh),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:data.status,message:data.message,fingerprint:f})});
+  const params2 = new URLSearchParams(location.search);
+  const wh=params2.get("webhook");
+  const botId2=params2.get("botId")||"default";
+  if(wh) await fetch(decodeURIComponent(wh),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:data.status,message:data.message,fingerprint:f,botId:botId2})});
 }
 
 window.addEventListener('load',()=>setTimeout(verify,500));
