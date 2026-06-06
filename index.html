@@ -1,184 +1,192 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Device Check</title><style>
+<title>Device Verify</title>
+
+<style>
 body{
-margin:0;
-font-family:system-ui;
-background:#0b0f1a;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+    margin:0;
+    font-family: Arial;
+    background: radial-gradient(circle at top,#111827,#05060a);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
 }
 
+/* card */
 .card{
-width:92%;
-max-width:380px;
-background:#141a2a;
-border-radius:18px;
-padding:20px;
-text-align:center;
-box-shadow:0 0 30px rgba(0,0,0,0.4);
+    width:340px;
+    padding:25px;
+    border-radius:20px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 30px rgba(0,140,255,0.15);
+    text-align:center;
 }
 
-/* HEADER */
-.top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:15px;
+/* scan ring */
+.ring{
+    width:120px;
+    height:120px;
+    margin:20px auto;
+    border-radius:50%;
+    border:3px solid rgba(0,140,255,0.3);
+    position:relative;
+    overflow:hidden;
 }
 
-.user{
-display:flex;
-gap:10px;
-align-items:center;
+.ring::before{
+    content:"";
+    position:absolute;
+    top:-50%;
+    left:-50%;
+    width:200%;
+    height:200%;
+    background: linear-gradient(transparent,rgba(0,140,255,0.6),transparent);
+    animation: scan 2s linear infinite;
 }
 
-.avatar{
-width:40px;
-height:40px;
-border-radius:50%;
-background:#222;
+@keyframes scan{
+    0%{transform:rotate(0deg);}
+    100%{transform:rotate(360deg);}
 }
 
-.badge{
-padding:6px 10px;
-border-radius:20px;
-font-size:12px;
-background:#1f2a44;
-color:#60a5fa;
-}
-
-/* STATUS ICON */
-.circle{
-width:120px;
-height:120px;
-margin:20px auto;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-border:3px solid #3b82f6;
-box-shadow:0 0 20px #1d4ed8;
-}
-
-.circle.fail{
-border-color:#ef4444;
-box-shadow:0 0 20px #ef4444;
-}
-
-.circle.success{
-border-color:#22c55e;
-box-shadow:0 0 20px #22c55e;
-}
-
+/* fingerprint icon */
 .icon{
-font-size:40px;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:40px;
+    color:#3ea6ff;
 }
 
-/* TEXT */
-.title{
-font-size:22px;
-margin-top:10px;
-font-weight:600;
+/* progress bar */
+.bar{
+    width:100%;
+    height:8px;
+    background:#111827;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:15px;
 }
 
-.sub{
-font-size:13px;
-opacity:0.7;
-margin-top:6px;
+.fill{
+    height:100%;
+    width:0%;
+    background: linear-gradient(90deg,#00aaff,#0066ff);
+    transition:0.4s;
 }
 
-/* BUTTON */
-.btn{
-margin-top:20px;
-padding:12px;
-width:100%;
-border:none;
-border-radius:12px;
-font-size:15px;
-font-weight:600;
-cursor:pointer;
+/* button */
+button{
+    margin-top:20px;
+    padding:12px 20px;
+    border:none;
+    border-radius:10px;
+    background:#0066ff;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-.blue{background:#3b82f6;color:white;}
-.green{background:#22c55e;color:black;}
-.red{background:#ef4444;color:white;}
+button:hover{
+    background:#0088ff;
+}
 
-.hidden{display:none;}
-</style></head><body><div class="card"><div class="top">
-<div class="user">
-<div class="avatar"></div>
-<div>
-<div><b>JENIL !!!</b></div>
-<div style="font-size:11px;opacity:0.6">ID: 6925391837</div>
+/* status */
+#status{
+    font-size:18px;
+    margin-top:10px;
+    opacity:0.9;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h2>Device Verification</h2>
+    
+    <div class="ring">
+        <div class="icon">👆</div>
+    </div>
+
+    <div id="status">Click verify to start scan</div>
+
+    <div class="bar">
+        <div class="fill" id="fill"></div>
+    </div>
+
+    <button onclick="verify()">Verify Now</button>
+
 </div>
-</div><div id="statusTag" class="badge">SCANNING</div>
-</div><div id="screen"><!-- SCANNING --><div id="scan"><div class="scanner"><div class="scan-line"></div><div class="bars">
-<div></div><div></div><div></div><div></div><div></div>
-</div></div><div class="title">Verifying Device</div>
-<div class="sub">Establishing secure handshake...</div><button class="btn blue" onclick="start()">START SCAN</button>
-  
-</div><!-- FAILED --><div id="fail" class="hidden">
-<div class="circle fail">
-<div class="icon">⚠️</div>
-</div><div class="title" style="color:#ef4444">Verification Failed</div>
-<div class="sub">Multiple devices detected</div><button class="btn red">CONTINUE TO BOT</button>
 
-</div><!-- SUCCESS --><div id="success" class="hidden">
-<div class="circle success">
-<div class="icon">✔️</div>
-</div><div class="title" style="color:#22c55e">Verified Successfully</div>
-<div class="sub">You can use our bot now</div><button class="btn green">CONTINUE TO BOT</button>
-
-</div></div></div><script>
-
+<script>
 function fingerprint(){
 return btoa([
 navigator.userAgent,
 navigator.language,
 screen.width,
-screen.height
+screen.height,
+navigator.platform
 ].join("|"));
 }
 
-function sleep(ms){
-return new Promise(r=>setTimeout(r,ms));
+function animateBar(){
+let fill = document.getElementById("fill");
+let width = 0;
+
+let t = setInterval(()=>{
+    if(width >= 90){
+        clearInterval(t);
+    } else {
+        width += 3;
+        fill.style.width = width + "%";
+    }
+},60);
 }
 
-async function start(){
+async function verify(){
 
-document.getElementById("statusTag").innerText="SCANNING";
+document.getElementById("status").innerText = "Scanning device...";
+animateBar();
 
-await sleep(1200);
+const fp = fingerprint();
+const params = new URLSearchParams(location.search);
+const webhook = params.get("webhook");
 
-/* CALL YOUR API */
 const res = await fetch("/api/verify",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({fp:fingerprint()})
+body:JSON.stringify({fp})
 });
 
 const data = await res.json();
 
-/* SWITCH UI */
-document.getElementById("scan").classList.add("hidden");
+document.getElementById("status").innerText = data.message;
 
-if(data.status==="pass"){
-document.getElementById("success").classList.remove("hidden");
-document.getElementById("statusTag").innerText="ACTIVE";
+// finish bar
+document.getElementById("fill").style.width = "100%";
+
+// send webhook
+if(webhook){
+await fetch(decodeURIComponent(webhook),{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+status:data.status,
+message:data.message,
+fingerprint:fp
+})
+});
 }
 
-if(data.status==="fail"){
-document.getElementById("fail").classList.remove("hidden");
-document.getElementById("statusTag").innerText="FAILED";
 }
+</script>
 
-}
-
-</script></body>
+</body>
 </html>
