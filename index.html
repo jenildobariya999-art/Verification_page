@@ -1,184 +1,61 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Device Verification</title><style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+<title>Device Verify</title>
+</head>
+<body style="background:#0f172a;color:#fff;text-align:center;padding-top:100px;">
 
-body{
-background:#0f172a;
-color:#fff;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-padding:20px;
-}
+<h2 id="status">Click Verify</h2>
 
-.card{
-width:100%;
-max-width:400px;
-background:#1e293b;
-border-radius:16px;
-padding:25px;
-text-align:center;
-}
+<button onclick="verify()">Verify Now</button>
 
-h2{
-margin-bottom:20px;
-}
-
-.loader{
-width:70px;
-height:70px;
-border:6px solid rgba(255,255,255,.15);
-border-top:6px solid #22c55e;
-border-radius:50%;
-margin:20px auto;
-display:none;
-animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-100%{
-transform:rotate(360deg);
-}
-}
-
-#status{
-min-height:60px;
-margin-top:15px;
-font-size:15px;
-}
-
-button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:10px;
-background:#22c55e;
-color:#fff;
-font-size:16px;
-cursor:pointer;
-}
-
-.success{
-font-size:60px;
-display:none;
-margin-top:10px;
-}
-</style></head>
-<body><div class="card"><h2>🔐 Device Verification</h2><div class="loader" id="loader"></div><div class="success" id="success">
-✅
-</div><div id="status">
-Press Verify To Continue
-</div><br><button id="verifyBtn">
-Verify Now
-</button></div><script>
-
-function generateFingerprint(){
-
+<script>
+function fingerprint(){
 return btoa([
 navigator.userAgent,
-navigator.platform,
 navigator.language,
 screen.width,
 screen.height,
-new Date().getTimezoneOffset()
+navigator.platform
 ].join("|"));
-
 }
 
-document
-.getElementById("verifyBtn")
-.onclick = async ()=>{
+async function verify(){
 
-const btn =
-document.getElementById("verifyBtn");
+document.getElementById("status").innerText =
+"Checking device...";
 
-btn.disabled = true;
+const fp = fingerprint();
 
-document.getElementById(
-"loader"
-).style.display="block";
+const params = new URLSearchParams(location.search);
+const webhook = params.get("webhook");
 
-const steps = [
-"🔍 Inspecting Device...",
-"📱 Reading Telegram Session...",
-"🛡️ Validating Security Parameters...",
-"⚙️ Checking Hardware Signature...",
-"🌐 Connecting To Verification Server...",
-"🔐 Generating Device Fingerprint...",
-"📊 Cross Checking Device Records..."
-];
-
-const status =
-document.getElementById("status");
-
-for(const step of steps){
-
-status.innerText = step;
-
-await new Promise(r =>
-setTimeout(r,1000)
-);
-
-}
-
-const params =
-new URLSearchParams(
-location.search
-);
-
-const webhook =
-decodeURIComponent(
-params.get("webhook") || ""
-);
-
-const fp =
-generateFingerprint();
-
-try{
-
-await fetch(
-webhook,
-{
+const res = await fetch("/api/verify",{
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({fp})
+});
+
+const data = await res.json();
+
+document.getElementById("status").innerText =
+data.message;
+
+// send result to TBC webhook
+if(webhook){
+await fetch(decodeURIComponent(webhook),{
+method:"POST",
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-status:"pass",
-message:"Verified Successfully",
+status:data.status,
+message:data.message,
 fingerprint:fp
 })
-}
-);
-
-document.getElementById(
-"loader"
-).style.display="none";
-
-document.getElementById(
-"success"
-).style.display="block";
-
-status.innerText =
-"✅ Verification Successful";
-
-}catch(err){
-
-status.innerText =
-"❌ Verification Failed";
-
+});
 }
 
-};
+}
+</script>
 
-</script></body>
+</body>
 </html>
