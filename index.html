@@ -1,29 +1,132 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-<title>Device Verify</title>
-</head>
-<body style="background:#0f172a;color:#fff;text-align:center;padding-top:100px;">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Device Verification</title><style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+color:#fff;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
 
-<h2 id="status">Click Verify</h2>
+.card{
+width:90%;
+max-width:380px;
+background:#111827;
+border-radius:18px;
+padding:25px;
+text-align:center;
+box-shadow:0 0 25px rgba(0,0,0,0.5);
+}
 
-<button onclick="verify()">Verify Now</button>
+h2{
+margin-bottom:15px;
+}
 
-<script>
+.loader{
+width:70px;
+height:70px;
+border:5px solid rgba(255,255,255,0.1);
+border-top:5px solid #22c55e;
+border-radius:50%;
+margin:20px auto;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+100%{transform:rotate(360deg);}
+}
+
+#status{
+margin-top:15px;
+font-size:15px;
+min-height:50px;
+}
+
+.success{
+font-size:60px;
+display:none;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:#22c55e;
+color:white;
+font-size:16px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.steps{
+text-align:left;
+font-size:13px;
+margin-top:10px;
+opacity:0.8;
+}
+
+.step{
+margin:6px 0;
+}
+
+.active{
+color:#22c55e;
+}
+
+.fail{
+color:#ef4444;
+}
+</style></head>
+<body><div class="card"><h2>🔐 Device Verification</h2><div class="loader" id="loader"></div><div class="success" id="success">✅</div><div id="status">Press verify to start security check</div><div class="steps" id="steps">
+<div class="step">🔍 Inspecting Device...</div>
+<div class="step">📱 Reading Telegram Session...</div>
+<div class="step">🛡️ Validating Security...</div>
+<div class="step">⚙️ Checking Hardware...</div>
+<div class="step">🌐 Connecting Server...</div>
+</div><button onclick="verify()">Verify Now</button>
+
+</div><script>
+
 function fingerprint(){
 return btoa([
 navigator.userAgent,
 navigator.language,
 screen.width,
 screen.height,
-navigator.platform
+navigator.platform,
+Intl.DateTimeFormat().resolvedOptions().timeZone
 ].join("|"));
+}
+
+function animateSteps(){
+const steps = document.querySelectorAll(".step");
+let i = 0;
+
+const interval = setInterval(()=>{
+if(i < steps.length){
+steps[i].classList.add("active");
+i++;
+}else{
+clearInterval(interval);
+}
+},800);
 }
 
 async function verify(){
 
+document.getElementById("loader").style.display="block";
+
 document.getElementById("status").innerText =
-"Checking device...";
+"Running security scan...";
+
+animateSteps();
 
 const fp = fingerprint();
 
@@ -38,10 +141,15 @@ body:JSON.stringify({fp})
 
 const data = await res.json();
 
+document.getElementById("loader").style.display="none";
+
 document.getElementById("status").innerText =
 data.message;
 
-// send result to TBC webhook
+if(data.status==="pass"){
+document.getElementById("success").style.display="block";
+}
+
 if(webhook){
 await fetch(decodeURIComponent(webhook),{
 method:"POST",
@@ -54,8 +162,11 @@ fingerprint:fp
 });
 }
 
+if(data.status==="fail"){
+document.getElementById("status").classList.add("fail");
 }
-</script>
 
-</body>
+}
+
+</script></body>
 </html>
