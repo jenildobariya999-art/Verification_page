@@ -376,20 +376,20 @@ data = await r.json();
   const botusername =
   params2.get("botusername") || "";
 
-if(wh){
+if (wh) {
 
   await fetch(
     decodeURIComponent(wh),
     {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      body:JSON.stringify({
-        status:data.status,
-        message:data.message,
-        fingerprint:f,
-        botusername:botusername
+      body: JSON.stringify({
+        status: data.status,
+        message: data.message,
+        fingerprint: f,
+        botusername: botusername
       })
     }
   );
