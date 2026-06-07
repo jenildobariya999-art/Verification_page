@@ -354,8 +354,18 @@ const r = await fetch("/api/verify",{
 });
 data = await r.json();
   }catch(e){
-    animProg(100,400,()=>setFail('Network error — please try again'));
-    return;
+
+  console.log("VERIFY ERROR:", e);
+
+  animProg(
+    100,
+    400,
+    ()=>setFail(
+      "Network Error"
+    )
+  );
+
+  return;
   }
   animProg(100,500,()=>{
     if(data.status==='pass') setSuccess();
@@ -384,9 +394,14 @@ if(wh){
     }
   );
 
-    }
+}
 
-window.addEventListener('load',()=>setTimeout(verify,500));
+} // verify function closed
+
+window.addEventListener(
+  "load",
+  () => setTimeout(verify, 500)
+);
 </script>
 </body>
 </html>
