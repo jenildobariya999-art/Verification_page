@@ -7,15 +7,42 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
 
-  const { fp, botusername } = req.body;
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      success: false,
+      message: "Method Not Allowed"
+    });
+  }
 
-  const key =
-    `BOT_${botusername}:FP_${fp}`;
+  try {
 
-  await redis.del(key);
+    const fp = String(req.body?.fp || "").trim();
+    const botusername = String(req.body?.botusername || "").trim();
 
-  return res.json({
-    success: true
-  });
+    if (!fp || !botusername) {
+      return res.json({
+        success: false,
+        message: "Missing Data"
+      });
+    }
+
+    const key =
+      `BOT_${botusername}:FP_${fp}`;
+
+    await redis.del(key);
+
+    return res.json({
+      success: true,
+      deleted: key
+    });
+
+  } catch (e) {
+
+    return res.json({
+      success: false,
+      error: String(e)
+    });
+
+  }
 
 }
