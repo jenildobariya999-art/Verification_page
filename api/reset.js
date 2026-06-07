@@ -7,13 +7,28 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
 
-  const { fp, botusername } = req.body;
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      status: "fail"
+    });
+  }
 
-  await redis.del(
-    `BOT_${botusername}:FP_${fp}`
-  );
+  const { fp, botusername } = req.body || {};
+
+  if (!fp || !botusername) {
+    return res.json({
+      status: "fail",
+      message: "Missing Data"
+    });
+  }
+
+  const key =
+    `BOT_${botusername}:FP_${fp}`;
+
+  await redis.del(key);
 
   return res.json({
-    status: "ok"
+    status: "pass",
+    message: "Reset Successful"
   });
 }
