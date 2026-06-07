@@ -25,7 +25,9 @@ export default async function handler(req, res) {
   const key =
     `BOT_${botusername}:FP_${fp}`;
 
-  await redis.del(key);
+  await redis.del(
+  `BOT_${botusername}:FP_${fp}`
+);
 
   return res.json({
     status: "pass",
