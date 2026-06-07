@@ -522,4 +522,94 @@ function setFail(msg){
   btn.disabled=false;btn.className='btn br';btn.textContent='Continue to Bot';btn.onclick=closeApp;
 }
 
-function setNetworkErro
+function setNetworkError(){
+  mcard.className='mcard s-err';
+  arc.classList.remove('on');scanline.classList.remove('on');
+  disc.innerHTML=`<svg class="popin" viewBox="0 0 38 38" fill="none" stroke="#ff4f6d" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l32 26M12 8A15 15 0 0 1 35 25M6 13a15 15 0 0 0-2 7"/><circle cx="19" cy="32" r="1.5" fill="#ff4f6d" stroke="none"/></svg>`;
+  setStep(2);setSpill('fail');
+  ttl.className='ttl cr';ttl.textContent='Connection Failed';
+  sub.textContent='No internet. Check your connection and retry.';
+  prog.classList.remove('on');
+  btn.disabled=false;btn.className='btn br';btn.textContent='Retry';btn.onclick=retryVerify;
+}
+ 
+function closeApp(){
+  if(window.Telegram&&window.Telegram.WebApp)window.Telegram.WebApp.close();
+  else window.close();
+}
+ 
+function retryVerify(){
+  cur=0;pbar.style.width='0%';pct.textContent='0%';
+  mcard.className='mcard';
+  disc.innerHTML=FP_SVG;
+  arc.classList.add('on');scanline.classList.add('on');
+  pbar.style.background='var(--a)';
+  setStep(1);setSpill('scanning');
+  ttl.className='ttl ca';ttl.textContent='Verifying Device';
+  sub.textContent='Establishing secure handshake...';
+  prog.classList.add('on');
+  btn.disabled=true;btn.className='btn ba';btn.textContent='Scanning...';
+  verify();
+}
+ 
+function fp(){
+  return btoa([
+    navigator.userAgent,navigator.language,
+    screen.width,screen.height,navigator.platform,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency||0,navigator.deviceMemory||0
+  ].join("|"));
+}
+ 
+async function verify(){
+  setStep(1);
+  arc.classList.add('on');scanline.classList.add('on');
+  animProg(45,900,()=>{
+    setStep(2);
+    animProg(80,1000,null);
+  });
+  const f=fp();
+  let data;
+  try{
+    const params=new URLSearchParams(location.search);
+    const botusername=params.get("botusername")||"";
+    const r=await fetch("/api/verify",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fp:f,botusername:botusername})
+    });
+    data=await r.json();
+  }catch(e){
+    console.log("VERIFY ERROR:",e);
+    animProg(100,400,()=>setNetworkError());
+    return;
+  }
+  // 1. Send webhook to bot FIRST so it processes before user sees result
+  const params2=new URLSearchParams(location.search);
+  const wh=params2.get("webhook");
+  const botusername=params2.get("botusername")||"";
+  if(wh){
+    try{
+      await fetch(decodeURIComponent(wh),{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({status:data.status,message:data.message,fingerprint:f,botusername:botusername})
+      });
+    }catch(e){console.log("WEBHOOK ERROR:",e);}
+  }
+ 
+  // 2. Animate progress to 100% over 3s — gives bot time to send message
+  animProg(100,2800,null);
+  sub.textContent="Processing result...";
+  await new Promise(r=>setTimeout(r,3000));
+ 
+  // 3. Now show result
+  if(data.status==='pass')setSuccess();
+  else setFail(data.message==='Device already used'?'Multiple devices detected.':(data.message||'Verification failed.'));
+}
+ 
+window.addEventListener("load",()=>setTimeout(verify,500));
+</script>
+</body>
+</html>
+  
