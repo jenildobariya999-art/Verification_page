@@ -63,11 +63,11 @@ export default async function handler(req, res) {
 
   } catch (e) {
 
-    return res.json({
-      status: "fail",
-      message: "Server Error"
-    });
+  return res.json({
+    status: "fail",
+    message: String(e)
+  });
 
-  }
+}
 
 }
